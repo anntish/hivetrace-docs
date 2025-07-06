@@ -225,3 +225,8 @@ trace = HivetraceSDK(
         async_mode=False,
     )
 ```
+
+Лицензия
+========
+
+Этот проект лицензирован под Apache License 2.0.
