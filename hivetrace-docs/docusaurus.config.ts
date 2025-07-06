@@ -53,6 +53,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
+          routeBasePath: '/',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
@@ -84,9 +85,9 @@ const config: Config = {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
-      title: 'Hivetrace',
+      title: 'HiveTrace',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'HiveTraceLogo',
         src: 'img/logo.svg',
       },
       items: [
@@ -95,6 +96,7 @@ const config: Config = {
           sidebarId: 'tutorialSidebar',
           position: 'left',
           label: 'Документация',
+          to: '/intro',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
@@ -116,7 +118,7 @@ const config: Config = {
           items: [
             {
               label: 'Tutorial',
-              to: '/docs/intro',
+              to: '/intro',
             },
           ],
         },
@@ -151,7 +153,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} HiveTrace. Создано с помощью Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} HiveTrace`,
     },
     prism: {
       theme: prismThemes.github,
