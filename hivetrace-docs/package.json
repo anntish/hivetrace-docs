@@ -2,6 +2,7 @@
   "name": "hivetrace-docs",
   "version": "0.0.0",
   "private": true,
+  "homepage": "https://anntish.github.io/hivetrace-docs",
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",

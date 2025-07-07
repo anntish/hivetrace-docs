@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'HiveTrace Docs',
-  url: 'https://hivetrace.ai/', 
+  url: 'https://anntish.github.io', 
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -17,12 +17,14 @@ const config: Config = {
   // Set the production url of your site here
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: '/hivetrace-docs/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'anntish', // Usually your GitHub org/user name.
+  projectName: 'hivetrace-docs', // Usually your repo name.
+  deploymentBranch: 'gh-pages',
+  trailingSlash: false,
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -96,7 +98,7 @@ const config: Config = {
           sidebarId: 'tutorialSidebar',
           position: 'left',
           label: 'Документация',
-          to: '/intro',
+          to: '/',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
@@ -118,7 +120,7 @@ const config: Config = {
           items: [
             {
               label: 'Tutorial',
-              to: '/intro',
+              to: '/',
             },
           ],
         },
