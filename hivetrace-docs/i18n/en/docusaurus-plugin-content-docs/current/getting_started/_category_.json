@@ -1,8 +1,8 @@
 {
-  "label": "Getting Started",
+  "label": "Quick Start",
   "position": 2,
   "link": {
     "type": "generated-index",
-    "description": "Quick start with HiveTrace - set up AI monitoring in just a few simple steps."
+    "description": "A quick start with HiveTrace is to set up a monitoring system in a few simple steps."
   }
 } 
