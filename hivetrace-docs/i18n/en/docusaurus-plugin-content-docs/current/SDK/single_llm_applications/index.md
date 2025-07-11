@@ -98,7 +98,7 @@ response = hivetrace.input(
 )
 ```
 
-> **Note:** `session_id`, `user_id`, and every `agent_id` must be valid UUIDs.
+> **Note:** `agent_id` must be valid UUID.
 
 ## API Reference
 

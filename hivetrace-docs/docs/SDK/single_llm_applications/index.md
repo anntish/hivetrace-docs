@@ -103,7 +103,7 @@ response = hivetrace.input(
 )
 ```
 
-> **Примечание:** `session_id`, `user_id` и `agent_id` должны быть действительными UUID.
+> **Примечание:** `agent_id` должен быть действительными UUID.
 
 ## API
 
