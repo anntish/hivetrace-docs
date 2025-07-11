@@ -3,6 +3,8 @@ sidebar_position: 4
 title: "Настройка приложения"
 ---
 
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 # Настройка приложения
 
 В этом разделе вы узнаете, как настроить приложение для мониторинга в HiveTrace.
@@ -40,7 +42,7 @@ description: "Описание назначения приложения"
 Посмотрите видео-руководство по управлению приложениями:
 
 <video width="100%" controls>
-  <source src="/videos/app_setup_demo.webm" type="video/webm" />
+  <source src={useBaseUrl('/videos/app_setup_demo.webm')} type="video/webm" />
   Ваш браузер не поддерживает видео.
 </video>
 

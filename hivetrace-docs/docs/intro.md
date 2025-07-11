@@ -6,7 +6,9 @@ slug: /
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Документация HiveTrace [v2.0.0] - 2025-07-07
+# Документация HiveTrace
+
+[v2.0.0] - 2025-07-07
 
 <div style={{textAlign: 'left', marginBottom: '2rem'}}>
 

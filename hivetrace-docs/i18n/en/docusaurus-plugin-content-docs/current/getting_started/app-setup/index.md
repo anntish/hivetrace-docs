@@ -3,6 +3,8 @@ sidebar_position: 4
 title: "Application Setup"
 ---
 
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 # Application setup
 
 In this section you will learn how to set up an application for monitoring in HiveTrace.
@@ -40,6 +42,6 @@ description: "Description of the application's purpose"
 Watch the video guide on application management:
 
 <video width="100%" controls>
-  <source src="/videos/app_setup_demo.webm" type="video/webm" />
+  <source src={useBaseUrl('/videos/app_setup_demo.webm')} type="video/webm" />
   Your browser does not support the video tag.
 </video> 

@@ -22,5 +22,13 @@
   "sidebar.tutorialSidebar.category.Tutorial - Extras": {
     "message": "Tutorial - Extras",
     "description": "The label for category Tutorial - Extras in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Быстрый старт": {
+    "message": "Quick Start",
+    "description": "The label for category Quick Start in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Быстрый старт.link.generated-index.description": {
+    "message": "A quick start with HiveTrace is to set up a monitoring system in a few simple steps.",
+    "description": "The generated-index page description for category Quick Start in sidebar tutorialSidebar"
   }
 }

@@ -89,8 +89,9 @@ const config: Config = {
     navbar: {
       title: 'HiveTrace',
       logo: {
-        alt: 'HiveTraceLogo',
-        src: 'img/logo.svg',
+        alt: 'HiveTrace logo',
+        src: 'img/logo_light.svg',
+        srcDark: 'img/logo_dark.svg',
       },
       items: [
         {
@@ -106,8 +107,8 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/facebook/docusaurus',
-          label: 'GitHub',
+          href: 'https://pypi.org/project/hivetrace/',
+          label: 'PyPI',
           position: 'right',
         },
       ],
@@ -116,41 +117,15 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
-          items: [
-            {
-              label: 'Tutorial',
-              to: '/',
-            },
-          ],
-        },
-        {
           title: 'Community',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+              label: 'HiveTrace.ai',
+              href: 'https://hivetrace.ai/',
             },
             {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'X',
-              href: 'https://x.com/docusaurus',
-            },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
-            {
-              label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              label: 'AI Security Lab',
+              href: 'https://t.me/aisecuritylab',
             },
           ],
         },
