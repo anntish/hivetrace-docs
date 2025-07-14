@@ -80,6 +80,13 @@ Powerful tools for working with agents and multi-agent systems.
 
 </div>
 
+<div style={{border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '6px', padding: '1rem', textAlign: 'center'}}>
+
+#### 🤖 OpenAI Agents
+[OpenAI Agents Documentation](SDK/Agents/OpenAI%20Agents/)
+
+</div>
+
 </div>
 
 </TabItem>
@@ -100,10 +107,11 @@ Monitor the security of your LLM applications:
 
 <div style={{border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '8px', padding: '1.5rem', backgroundColor: 'var(--ifm-background-color)'}}>
 
-### , Agent support
+### 🤖 Agent support
 Integration with popular agency frameworks
 - CrewAI
 - Langchain
+- OpenAI Agents
 
 Building agent and trunk tracing graphs
 

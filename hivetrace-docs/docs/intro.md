@@ -80,6 +80,13 @@ import TabItem from '@theme/TabItem';
 
 </div>
 
+<div style={{border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '6px', padding: '1rem', textAlign: 'center'}}>
+
+#### 🤖 OpenAI Agents
+[Документация OpenAI Agents](SDK/Agents/OpenAI%20Agents/)
+
+</div>
+
 </div>
 
 </TabItem>
@@ -104,6 +111,7 @@ import TabItem from '@theme/TabItem';
 Интеграция с популярными агентскими фреймворками
   - CrewAI
   - Langchain
+  - OpenAI Agents
 
 Построение графов трассировки агентов и тулов
 
