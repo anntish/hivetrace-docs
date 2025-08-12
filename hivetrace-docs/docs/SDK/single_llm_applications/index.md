@@ -3,178 +3,205 @@ sidebar_position: 1
 title: "Подключение приложений с одной LLM (без агентов)"
 ---
 
-# Hivetrace SDK
-
 ## Обзор
 
-Hivetrace SDK предназначен для интеграции с сервисом Hivetrace, обеспечивая мониторинг пользовательских запросов и ответов LLM.
+Hivetrace SDK позволяет интегрироваться с сервисом Hivetrace для мониторинга пользовательских запросов и ответов LLM. Поддерживаются синхронные и асинхронные режимы работы, а конфигурация может выполняться через переменные окружения.
+
+---
 
 ## Установка
 
-Установите SDK через pip:
+Установите из PyPI:
 
 ```bash
 pip install hivetrace[base]
 ```
 
-## Использование
+---
+
+## Быстрый старт
 
 ```python
-from hivetrace import HivetraceSDK
+from hivetrace import SyncHivetraceSDK, AsyncHivetraceSDK
 ```
 
-## Синхронный и асинхронный режимы
+Можно использовать синхронный клиент (`SyncHivetraceSDK`) или асинхронный клиент (`AsyncHivetraceSDK`). Выберите тот, который подходит вашему окружению.
 
-Hivetrace SDK поддерживает как синхронный, так и асинхронный режимы выполнения. По умолчанию он работает в асинхронном режиме. Вы можете явно указать режим при инициализации.
+---
 
-### Синхронный режим
+## Синхронный клиент
 
-#### Инициализация синхронного режима
+### Инициализация (Sync)
 
 ```python
-# Синхронный режим
-hivetrace = HivetraceSDK(async_mode=False)
+# Синхронный клиент читает конфигурацию из переменных окружения или принимает явную конфигурацию
+client = SyncHivetraceSDK()
 ```
 
-#### Отправка пользовательского запроса
+### Отправка пользовательского запроса (input)
 
 ```python
-# Синхронный режим
-response = hivetrace.input(
-    application_id="your-application-id",  # получен после регистрации приложения в UI
-    message="Пользовательский запрос здесь"
+response = client.input(
+    application_id="your-application-id",  # Получается после регистрации приложения в UI
+    message="Текст пользовательского запроса",
 )
 ```
 
-#### Отправка ответа LLM
+### Отправка ответа LLM (output)
 
 ```python
-# Синхронный режим
-response = hivetrace.output(
-    application_id="your-application-id",  # получен после регистрации приложения в UI
-    message="Ответ LLM здесь"
+response = client.output(
+    application_id="your-application-id",
+    message="Текст ответа LLM",
 )
 ```
 
-### Асинхронный режим
+---
 
-#### Инициализация асинхронного режима
+## Асинхронный клиент
+
+### Инициализация (Async)
 
 ```python
-# Асинхронный режим (по умолчанию)
-hivetrace = HivetraceSDK(async_mode=True)
+# Асинхронный клиент можно использовать как контекстный менеджер
+client = AsyncHivetraceSDK()
 ```
 
-#### Отправка пользовательского запроса
+### Отправка пользовательского запроса (input)
 
 ```python
-# Асинхронный режим
-response = await hivetrace.input_async(
-    application_id="your-application-id",  # получен после регистрации приложения в UI
-    message="Пользовательский запрос здесь"
+response = await client.input(
+    application_id="your-application-id",
+    message="Текст пользовательского запроса",
 )
 ```
 
-#### Отправка ответа LLM
+### Отправка ответа LLM (output)
 
 ```python
-# Асинхронный режим
-response = await hivetrace.output_async(
-    application_id="your-application-id",  # получен после регистрации приложения в UI
-    message="Ответ LLM здесь"
+response = await client.output(
+    application_id="your-application-id",
+    message="Текст ответа LLM",
 )
 ```
+
+---
 
 ## Пример с дополнительными параметрами
 
 ```python
-response = hivetrace.input(
-    application_id="your-application-id", 
-    message="Пользовательский запрос здесь",
+response = client.input(
+    application_id="your-application-id",
+    message="Текст пользовательского запроса",
     additional_parameters={
         "session_id": "your-session-id",
         "user_id": "your-user-id",
         "agents": {
-            "agent-1-id": {"name": "Агент 1", "description": "Описание агента"},
-            "agent-2-id": {"name": "Агент 2"},
+            "agent-1-id": {"name": "Agent 1", "description": "Описание агента"},
+            "agent-2-id": {"name": "Agent 2"},
             "agent-3-id": {}
         }
     }
 )
 ```
 
-> **Примечание:** `agent_id` должен быть действительными UUID.
+> **Примечание:** `session_id`, `user_id` и все идентификаторы агентов должны быть корректными UUID.
+
+---
 
 ## API
 
 ### `input`
 
 ```python
-def input(application_id: str, message: str, additional_parameters: dict = None) -> dict:
-    ...
+# Sync
+def input(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+
+# Async
+async def input(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
 ```
 
-Отправляет пользовательский запрос в Hivetrace.
+Отправляет **пользовательский запрос** в Hivetrace.
 
-* `application_id`: Идентификатор приложения (должен быть действительным UUID, созданным в UI)
-* `message`: Пользовательский запрос
-* `additional_parameters`: Словарь дополнительных параметров (необязательно)
+* `application_id` — Идентификатор приложения (UUID, создается в UI)
+* `message` — Текст запроса
+* `additional_parameters` — Необязательный словарь с дополнительным контекстом (сессия, пользователь, агенты и т. д.)
 
 **Пример ответа:**
 
 ```json
 {
-    "status": "processed",
-    "monitoring_result": {
-        "is_toxic": false,
-        "type_of_violation": "benign",
-        "token_count": 9,
-        "token_usage_warning": false,
-        "token_usage_unbounded": false
-    }
+  "status": "processed",
+  "monitoring_result": {
+    "is_toxic": false,
+    "type_of_violation": "benign",
+    "token_count": 9,
+    "token_usage_warning": false,
+    "token_usage_unbounded": false
+  }
 }
 ```
+
+---
 
 ### `output`
 
 ```python
-def output(application_id: str, message: str, additional_parameters: dict = None) -> dict:
-    ...
+# Sync
+def output(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+
+# Async
+async def output(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
 ```
 
-Отправляет ответ LLM в Hivetrace.
+Отправляет **ответ LLM** в Hivetrace.
 
-* `application_id`: Идентификатор приложения (должен быть действительным UUID, созданным в UI)
-* `message`: Ответ LLM
-* `additional_parameters`: Словарь дополнительных параметров (необязательно)
+* `application_id` — Идентификатор приложения (UUID, создается в UI)
+* `message` — Текст ответа LLM
+* `additional_parameters` — Необязательный словарь с дополнительным контекстом (сессия, пользователь, агенты и т. д.)
 
 **Пример ответа:**
 
 ```json
 {
-    "status": "processed",
-    "monitoring_result": {
-        "is_toxic": false,
-        "type_of_violation": "safe",
-        "token_count": 21,
-        "token_usage_warning": false,
-        "token_usage_unbounded": false
-    }
+  "status": "processed",
+  "monitoring_result": {
+    "is_toxic": false,
+    "type_of_violation": "safe",
+    "token_count": 21,
+    "token_usage_warning": false,
+    "token_usage_unbounded": false
+  }
 }
 ```
+
+---
 
 ## Отправка запросов в синхронном режиме
 
 ```python
 def main():
-    hivetrace = HivetraceSDK(async_mode=False)
-    response = hivetrace.input(
-        application_id="your-application-id",
-        message="Пользовательский запрос здесь"
-    )
+    # вариант 1: контекстный менеджер
+    with SyncHivetraceSDK() as client:
+        response = client.input(
+            application_id="your-application-id",
+            message="Текст пользовательского запроса",
+        )
+
+    # вариант 2: ручное закрытие
+    client = SyncHivetraceSDK()
+    try:
+        response = client.input(
+            application_id="your-application-id",
+            message="Текст пользовательского запроса",
+        )
+    finally:
+        client.close()
 
 main()
 ```
+
+---
 
 ## Отправка запросов в асинхронном режиме
 
@@ -182,12 +209,22 @@ main()
 import asyncio
 
 async def main():
-    hivetrace = HivetraceSDK(async_mode=True)
-    response = await hivetrace.input_async(
-        application_id="your-application-id",
-        message="Пользовательский запрос здесь"
-    )
-    await hivetrace.close()
+    # вариант 1: контекстный менеджер
+    async with AsyncHivetraceSDK() as client:
+        response = await client.input(
+            application_id="your-application-id",
+            message="Текст пользовательского запроса",
+        )
+
+    # вариант 2: ручное закрытие
+    client = AsyncHivetraceSDK()
+    try:
+        response = await client.input(
+            application_id="your-application-id",
+            message="Текст пользовательского запроса",
+        )
+    finally:
+        await client.close()
 
 asyncio.run(main())
 ```
@@ -195,12 +232,19 @@ asyncio.run(main())
 ### Закрытие асинхронного клиента
 
 ```python
-await hivetrace.close()
+await client.close()
 ```
+
+---
 
 ## Конфигурация
 
-SDK загружает конфигурацию из переменных окружения. Разрешенный домен (`HIVETRACE_URL`) и API токен (`HIVETRACE_ACCESS_TOKEN`) автоматически извлекаются из окружения.
+SDK считывает конфигурацию из переменных окружения:
+
+* `HIVETRACE_URL` — базовый URL, доступный для вызовов.
+* `HIVETRACE_ACCESS_TOKEN` — API-токен для аутентификации.
+
+Эти переменные загружаются автоматически при создании клиента.
 
 ### Источники конфигурации
 
@@ -213,18 +257,30 @@ HIVETRACE_URL=https://your-hivetrace-instance.com
 HIVETRACE_ACCESS_TOKEN=your-access-token  # получен в UI (страница API Tokens)
 ```
 
-SDK автоматически загрузит эти настройки.
+SDK загрузит эти настройки автоматически.
 
-Вы также можете использовать конфигурацию при инициализации экземпляра класса hivetrace sdk для загрузки настроек.
-```bash
-trace = HivetraceSDK(
-        config={
-            "HIVETRACE_URL": HIVETRACE_URL,
-            "HIVETRACE_ACCESS_TOKEN": HIVETRACE_ACCESS_TOKEN,
-        },
-        async_mode=False,
-    )
+Также можно передать конфигурацию явно при создании клиента:
+
+```python
+client = SyncHivetraceSDK(
+    config={
+        "HIVETRACE_URL": HIVETRACE_URL,
+        "HIVETRACE_ACCESS_TOKEN": HIVETRACE_ACCESS_TOKEN,
+    },
+)
 ```
+
+## Переменные окружения
+
+Для удобства можно задать переменные окружения:
+
+```bash
+# .env файл
+HIVETRACE_URL=https://your-hivetrace-instance.com
+HIVETRACE_ACCESS_TOKEN=your-access-token
+HIVETRACE_APP_ID=your-application-id
+```
+
 
 Лицензия
 ========

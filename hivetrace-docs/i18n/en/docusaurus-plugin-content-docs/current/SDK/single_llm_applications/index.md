@@ -7,115 +7,129 @@ title: "Connecting Applications with a Single LLM (no agents)"
 
 ## Overview
 
-The HiveTrace SDK is designed to integrate your application with the HiveTrace service, providing monitoring of user requests and LLM responses.
+The Hivetrace SDK lets you integrate with the Hivetrace service to monitor user prompts and LLM responses. It supports both synchronous and asynchronous workflows and can be configured via environment variables.
+
+---
 
 ## Installation
 
-Install the SDK via **pip**:
+Install from PyPI:
 
 ```bash
 pip install hivetrace[base]
 ```
 
-## Usage
+---
+
+## Quick Start
 
 ```python
-from hivetrace import HivetraceSDK
+from hivetrace import SyncHivetraceSDK, AsyncHivetraceSDK
 ```
 
-## Synchronous vs. Asynchronous modes
+You can use either the synchronous client (`SyncHivetraceSDK`) or the asynchronous client (`AsyncHivetraceSDK`). Choose the one that fits your runtime.
 
-The SDK supports both synchronous and asynchronous execution. By default, it works **asynchronously**. You can explicitly set the mode during initialisation.
+---
 
-### Synchronous mode
+## Synchronous Client
 
-#### Initialise in synchronous mode
+### Initialize (Sync)
 
 ```python
-# Synchronous mode
-hivetrace = HivetraceSDK(async_mode=False)
+# The sync client reads configuration from environment variables or accepts an explicit config
+client = SyncHivetraceSDK()
 ```
 
-#### Send a user request
+### Send a user prompt (input)
 
 ```python
-response = hivetrace.input(
-    application_id="your-application-id",  # obtained after registering the application in the UI
-    message="User request here",
+response = client.input(
+    application_id="your-application-id",  # Obtained after registering the application in the UI
+    message="User prompt here",
 )
 ```
 
-#### Send an LLM response
+### Send an LLM response (output)
 
 ```python
-response = hivetrace.output(
-    application_id="your-application-id",  # obtained after registering the application in the UI
-    message="LLM response here",
-)
-```
-
-### Asynchronous mode (default)
-
-#### Initialise in asynchronous mode
-
-```python
-hivetrace = HivetraceSDK(async_mode=True)
-```
-
-#### Send a user request asynchronously
-
-```python
-response = await hivetrace.input_async(
-    application_id="your-application-id",
-    message="User request here",
-)
-```
-
-#### Send an LLM response asynchronously
-
-```python
-response = await hivetrace.output_async(
+response = client.output(
     application_id="your-application-id",
     message="LLM response here",
 )
 ```
 
-## Example with additional parameters
+---
+
+## Asynchronous Client
+
+### Initialize (Async)
 
 ```python
-response = hivetrace.input(
+# The async client can be used as a context manager
+client = AsyncHivetraceSDK()
+```
+
+### Send a user prompt (input)
+
+```python
+response = await client.input(
     application_id="your-application-id",
-    message="User request here",
+    message="User prompt here",
+)
+```
+
+### Send an LLM response (output)
+
+```python
+response = await client.output(
+    application_id="your-application-id",
+    message="LLM response here",
+)
+```
+
+---
+
+## Example with Additional Parameters
+
+```python
+response = client.input(
+    application_id="your-application-id",
+    message="User prompt here",
     additional_parameters={
         "session_id": "your-session-id",
         "user_id": "your-user-id",
         "agents": {
             "agent-1-id": {"name": "Agent 1", "description": "Agent description"},
             "agent-2-id": {"name": "Agent 2"},
-            "agent-3-id": {},
-        },
-    },
+            "agent-3-id": {}
+        }
+    }
 )
 ```
 
-> **Note:** `agent_id` must be valid UUID.
+> **Note:** `session_id`, `user_id`, and all agent IDs must be valid UUIDs.
 
-## API Reference
+---
+
+## API
 
 ### `input`
 
 ```python
-def input(application_id: str, message: str, additional_parameters: dict | None = None) -> dict:
-    ...
+# Sync
+def input(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+
+# Async
+async def input(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
 ```
 
-Sends a **user request** to HiveTrace.
+Sends a **user prompt** to Hivetrace.
 
-* **application_id** — Application identifier (must be a valid UUID created in the UI)
-* **message** — User message
-* **additional_parameters** — Optional dictionary with extra data
+* `application_id` — Application identifier (must be a valid UUID, created in the UI)
+* `message` — The user prompt
+* `additional_parameters` — Optional dictionary with extra context (session, user, agents, etc.)
 
-**Sample response**
+**Response example:**
 
 ```json
 {
@@ -130,16 +144,25 @@ Sends a **user request** to HiveTrace.
 }
 ```
 
+---
+
 ### `output`
 
 ```python
-def output(application_id: str, message: str, additional_parameters: dict | None = None) -> dict:
-    ...
+# Sync
+def output(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+
+# Async
+async def output(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
 ```
 
-Sends an **LLM response** to HiveTrace.
+Sends an **LLM response** to Hivetrace.
 
-**Sample response**
+* `application_id` — Application identifier (must be a valid UUID, created in the UI)
+* `message` — The LLM response
+* `additional_parameters` — Optional dictionary with extra context (session, user, agents, etc.)
+
+**Response example:**
 
 ```json
 {
@@ -154,69 +177,111 @@ Sends an **LLM response** to HiveTrace.
 }
 ```
 
-## Sending requests in synchronous mode
+---
+
+## Sending Requests in Sync Mode
 
 ```python
 def main():
-    hivetrace = HivetraceSDK(async_mode=False)
-    response = hivetrace.input(
-        application_id="your-application-id",
-        message="User request here",
-    )
+    # option 1: context manager
+    with SyncHivetraceSDK() as client:
+        response = client.input(
+            application_id="your-application-id",
+            message="User prompt here",
+        )
+
+    # option 2: manual close
+    client = SyncHivetraceSDK()
+    try:
+        response = client.input(
+            application_id="your-application-id",
+            message="User prompt here",
+        )
+    finally:
+        client.close()
 
 main()
 ```
 
-## Sending requests in asynchronous mode
+---
+
+## Sending Requests in Async Mode
 
 ```python
 import asyncio
 
 async def main():
-    hivetrace = HivetraceSDK(async_mode=True)
-    response = await hivetrace.input_async(
-        application_id="your-application-id",
-        message="User request here",
-    )
-    await hivetrace.close()
+    # option 1: context manager
+    async with AsyncHivetraceSDK() as client:
+        response = await client.input(
+            application_id="your-application-id",
+            message="User prompt here",
+        )
+
+    # option 2: manual close
+    client = AsyncHivetraceSDK()
+    try:
+        response = await client.input(
+            application_id="your-application-id",
+            message="User prompt here",
+        )
+    finally:
+        await client.close()
 
 asyncio.run(main())
 ```
 
-### Closing the asynchronous client
+### Closing the Async Client
 
 ```python
-await hivetrace.close()
+await client.close()
 ```
+
+---
 
 ## Configuration
 
-The SDK loads configuration from **environment variables**. The base URL (`HIVETRACE_URL`) and API token (`HIVETRACE_ACCESS_TOKEN`) are automatically pulled from the environment.
+The SDK reads configuration from environment variables:
 
-### Configuration sources
+* `HIVETRACE_URL` — Base URL allowed to call.
+* `HIVETRACE_ACCESS_TOKEN` — API token used for authentication.
 
-HiveTrace SDK can retrieve configuration from the following sources:
+These are loaded automatically when you create a client.
 
-**.env file**
+
+### Configuration Sources
+
+Hivetrace SDK can retrieve configuration from the following sources:
+
+**.env File:**
 
 ```bash
 HIVETRACE_URL=https://your-hivetrace-instance.com
-HIVETRACE_ACCESS_TOKEN=your-access-token  # generated on the UI (API Tokens page)
+HIVETRACE_ACCESS_TOKEN=your-access-token  # obtained in the UI (API Tokens page)
 ```
 
 The SDK will automatically load these settings.
 
-You can also pass the configuration explicitly during SDK initialisation:
-
-```python
-trace = HivetraceSDK(
+You can also pass a config dict explicitly when creating a client instance.
+```bash
+client = SyncHivetraceSDK(
     config={
         "HIVETRACE_URL": HIVETRACE_URL,
         "HIVETRACE_ACCESS_TOKEN": HIVETRACE_ACCESS_TOKEN,
     },
-    async_mode=False,
 )
-``` 
+```
+
+## Environment Variables
+
+Set up your environment variables for easier configuration:
+
+```bash
+# .env file
+HIVETRACE_URL=https://your-hivetrace-instance.com
+HIVETRACE_ACCESS_TOKEN=your-access-token
+HIVETRACE_APP_ID=your-application-id
+```
 
 License
 ========
