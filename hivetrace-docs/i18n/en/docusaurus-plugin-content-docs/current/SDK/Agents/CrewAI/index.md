@@ -1,298 +1,307 @@
 # CrewAI Integration
 
-Monitor your CrewAI multi-agent systems with automatic tracking of all agent interactions, tool usage, and task execution.
+**Demo repository**
 
-> **Important:** This integration currently supports **linear agent workflows** where agents perform tasks sequentially. Support for more complex interaction models (parallel execution, dynamic delegation, etc.) is coming soon.
-> 
-> **Note:** The agents shown in the examples (Researcher, Writer, Reviewer) are for demonstration only. You can use any agents, roles, goals, and tools that fit your use-case.
+[https://github.com/anntish/multiagents-crew-forge](https://github.com/anntish/multiagents-crew-forge)
+
+## Step 1: Install the dependency
+
+**What to do:** Add the HiveTrace SDK to your project
+
+**Where:** In `requirements.txt` or via pip
+
+```bash
+# Via pip (for quick testing)
+pip install hivetrace[crewai]>=1.3.5
+
+# Or add to requirements.txt (recommended)
+echo "hivetrace[crewai]>=1.3.3" >> requirements.txt
+pip install -r requirements.txt
+```
+
+**Why:** The HiveTrace SDK provides decorators and clients for sending agent activity data to the monitoring platform.
 
 ---
 
-## Quick Start
+## Step 2: **ADD** unique IDs for each agent
 
-### Prerequisites
-
-- HiveTrace SDK installed: `pip install hivetrace[crewai]`
-- A valid HiveTrace **Application ID** and **Access Token**
-
-### Basic Setup
-
-#### Step&nbsp;1: Initialize the SDK (required)
-
-You can use environment variables or pass the configuration explicitly.
+**Example:** In `src/config.py`
 
 ```python
-from hivetrace import HivetraceSDK
-
-hivetrace = HivetraceSDK(
-    config={
-        "HIVETRACE_URL": "https://your-hivetrace-instance.com",  # required
-        "HIVETRACE_ACCESS_TOKEN": "your-access-token",          # required
-    },
-    async_mode=False,  # optional, defaults to True
-)
+PLANNER_ID = "333e4567-e89b-12d3-a456-426614174001"
+WRITER_ID = "444e4567-e89b-12d3-a456-426614174002"
+EDITOR_ID = "555e4567-e89b-12d3-a456-426614174003"
 ```
 
-#### Step&nbsp;2: Configure agent monitoring
+**Why agents need IDs:** HiveTrace tracks each agent individually. A UUID ensures the agent can be uniquely identified in the monitoring system.
+
+---
+
+## Step 3: Create an agent mapping
+
+**What to do:** Map agent roles to their HiveTrace IDs
+
+**Example:** In `src/agents.py` (where your agents are defined)
 
 ```python
-import uuid
-from crewai import Agent, Crew, Task
-from hivetrace import crewai_trace as trace
+from crewai import Agent
+# ADD: import agent IDs
+from src.config import EDITOR_ID, PLANNER_ID, WRITER_ID
 
-# Generate unique UUIDs for your agents (generate once and persist)
-RESEARCHER_ID = str(uuid.uuid4())
-WRITER_ID = str(uuid.uuid4())
-REVIEWER_ID = str(uuid.uuid4())
-
-# Map roles to IDs (required for monitoring)
-AGENT_IDS = {
-    "researcher": RESEARCHER_ID,
-    "writer": WRITER_ID,
-    "reviewer": REVIEWER_ID,
-}
-
-# Create a mapping with descriptions (required by the decorator)
+# ADD: mapping for HiveTrace (REQUIRED!)
 agent_id_mapping = {
-    "Researcher": {
-        "id": AGENT_IDS["researcher"],
-        "description": "Researches topics and gathers information",
+    "Content Planner": {  # ← Exactly the same as Agent(role="Content Planner")
+        "id": PLANNER_ID,
+        "description": "Creates content plans"
     },
-    "Writer": {
-        "id": AGENT_IDS["writer"],
-        "description": "Produces high-quality written content",
+    "Content Writer": {   # ← Exactly the same as Agent(role="Content Writer")
+        "id": WRITER_ID,
+        "description": "Writes high-quality articles"
     },
-    "Reviewer": {
-        "id": AGENT_IDS["reviewer"],
-        "description": "Reviews and improves content quality",
+    "Editor": {           # ← Exactly the same as Agent(role="Editor")
+        "id": EDITOR_ID,
+        "description": "Edits and improves articles"
     },
 }
-```
 
-#### Step&nbsp;3: Configure agents and tools with tracking
-
-```python
-from crewai_tools import WebSearchTool
-
-# Create tools and assign agent IDs for tracking
-research_tools = [WebSearchTool()]
-for tool in research_tools:
-    tool.agent_id = AGENT_IDS["researcher"]  # required for tool tracking
-
-# Define the agents
-researcher = Agent(
-    role="Researcher",
-    goal="Thoroughly research the given topic",
-    backstory="Expert researcher with web-search capabilities",
-    tools=research_tools,
+# Your existing agents (NO CHANGES)
+planner = Agent(
+    role="Content Planner",  # ← Must match key in agent_id_mapping
+    goal="Create a structured content plan for the given topic",
+    backstory="You are an experienced analyst...",
     verbose=True,
 )
 
 writer = Agent(
-    role="Writer",
-    goal="Produce comprehensive content",
-    backstory="Professional content writer",
+    role="Content Writer",   # ← Must match key in agent_id_mapping
+    goal="Write an informative and engaging article",
+    backstory="You are a talented writer...",
     verbose=True,
 )
 
-reviewer = Agent(
-    role="Reviewer",
-    goal="Review and improve content quality",
-    backstory="Editorial expert focused on quality",
+editor = Agent(
+    role="Editor",           # ← Must match key in agent_id_mapping
+    goal="Improve the article",
+    backstory="You are an experienced editor...",
     verbose=True,
 )
 ```
 
-#### Step&nbsp;4: Apply the monitoring decorator
+**Important:** The keys in `agent_id_mapping` must **exactly** match the `role` of your agents. Otherwise, HiveTrace will not be able to associate activity with the correct agent.
+
+---
+
+## Step 4: Integrate with tools (if used)
+
+**What to do:** Add HiveTrace support to tools
+
+**Example:** In `src/tools.py`
 
 ```python
-@trace(
-    hivetrace=hivetrace,            # required
-    application_id="your-hivetrace-app-id",  # required
-    agent_id_mapping=agent_id_mapping,         # required
-)
-def create_monitored_crew():
-    """Create and return a monitored CrewAI team."""
+from crewai.tools import BaseTool
+from typing import Optional
 
-    # Define tasks
-    research_task = Task(
-        description="Research {topic} and gather key information",
-        agent=researcher,
-        expected_output="Detailed research report",
-    )
-
-    writing_task = Task(
-        description="Write an article on {topic} based on the research",
-        agent=writer,
-        expected_output="Well-written article",
-    )
-
-    review_task = Task(
-        description="Review and improve the article",
-        agent=reviewer,
-        expected_output="Polished final article",
-    )
-
-    return Crew(
-        agents=[researcher, writer, reviewer],
-        tasks=[research_task, writing_task, review_task],
-        verbose=True,
-    )
+class WordCountTool(BaseTool):
+    name: str = "WordCountTool"
+    description: str = "Count words, characters and sentences in text"
+    # ADD: HiveTrace field (REQUIRED!)
+    agent_id: Optional[str] = None
+    
+    def _run(self, text: str) -> str:
+        word_count = len(text.split())
+        return f"Word count: {word_count}"
 ```
 
-#### Step&nbsp;5: Run with monitoring
+**Example:** In `src/agents.py`
 
 ```python
-def run_monitored_workflow(topic: str, user_id: str | None = None, session_id: str | None = None):
-    """Execute the agent workflow with full monitoring."""
+from src.tools import WordCountTool
+from src.config import PLANNER_ID, WRITER_ID, EDITOR_ID
 
-    conversation_id = str(uuid.uuid4())
+# ADD: create tools for each agent
+planner_tools = [WordCountTool()]
+writer_tools = [WordCountTool()]
+editor_tools = [WordCountTool()]
 
-    # Log the initial user input (recommended)
+# ADD: assign tools to agents
+for tool in planner_tools:
+    tool.agent_id = PLANNER_ID
+
+for tool in writer_tools:
+    tool.agent_id = WRITER_ID
+
+for tool in editor_tools:
+    tool.agent_id = EDITOR_ID
+
+# Use tools in agents
+planner = Agent(
+    role="Content Planner",
+    tools=planner_tools,  # ← Agent-specific tools
+    # ... other parameters
+)
+```
+
+**Why:** HiveTrace tracks tool usage. The `agent_id` field in the tool class and its assignment let HiveTrace know which agent used which tool.
+
+---
+
+## Step 5: Initialize HiveTrace in FastAPI (if used)
+
+**What to do:** Add the HiveTrace client to the application lifecycle
+
+**Example:** In `main.py`
+
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+# ADD: import HiveTrace SDK
+from hivetrace import SyncHivetraceSDK
+from src.config import HIVETRACE_ACCESS_TOKEN, HIVETRACE_URL
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # ADD: initialize HiveTrace client
+    hivetrace = SyncHivetraceSDK(
+        config={
+            "HIVETRACE_URL": HIVETRACE_URL,
+            "HIVETRACE_ACCESS_TOKEN": HIVETRACE_ACCESS_TOKEN,
+        }
+    )
+    # Store client in app state
+    app.state.hivetrace = hivetrace
+    try:
+        yield
+    finally:
+        # IMPORTANT: close connection on shutdown
+        hivetrace.close()
+
+app = FastAPI(lifespan=lifespan)
+```
+
+---
+
+## Step 6: Integrate into business logic
+
+**What to do:** Wrap Crew creation with the HiveTrace decorator
+
+**Example:** In `src/services/topic_service.py`
+
+```python
+import uuid
+from typing import Optional
+from crewai import Crew
+# ADD: HiveTrace imports
+from hivetrace import SyncHivetraceSDK
+from hivetrace import crewai_trace as trace
+
+from src.agents import agent_id_mapping, planner, writer, editor
+from src.tasks import plan_task, write_task, edit_task
+from src.config import HIVETRACE_APP_ID
+
+def process_topic(
+    topic: str,
+    hivetrace: SyncHivetraceSDK,  # ← ADD parameter
+    user_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+):
+    # ADD: generate unique conversation ID
+    agent_conversation_id = str(uuid.uuid4())
+    
+    # ADD: common trace parameters
+    common_params = {
+        "agent_conversation_id": agent_conversation_id,
+        "user_id": user_id,
+        "session_id": session_id,
+    }
+
+    # ADD: log user request
     hivetrace.input(
-        application_id="your-hivetrace-app-id",
-        message=f"User requested content for topic: {topic}",
+        application_id=HIVETRACE_APP_ID,
+        message=f"Requesting information from agents on topic: {topic}",
         additional_parameters={
-            "agent_conversation_id": conversation_id,
-            "user_id": user_id,
-            "session_id": session_id,
-            "agents": {
-                data["id"]: {
-                    "name": name,
-                    "description": data["description"],
-                }
-                for name, data in agent_id_mapping.items()
-            },
+            **common_params,
+            "agents": agent_id_mapping,  # ← pass agent mapping
         },
     )
 
-    # Create and execute the crew
-    crew = create_monitored_crew()
+    # ADD: @trace decorator for monitoring Crew
+    @trace(
+        hivetrace=hivetrace,
+        application_id=HIVETRACE_APP_ID,
+        agent_id_mapping=agent_id_mapping,  # ← REQUIRED!
+    )
+    def create_crew():
+        return Crew(
+            agents=[planner, writer, editor],
+            tasks=[plan_task, write_task, edit_task],
+            verbose=True,
+        )
 
-    execution_params = {"inputs": {"topic": topic}}
-    if user_id:
-        execution_params["user_id"] = user_id
-    if session_id:
-        execution_params["session_id"] = session_id
-    if conversation_id:
-        execution_params["agent_conversation_id"] = conversation_id
-
-    result = crew.kickoff(**execution_params)
-    return result
-```
-
----
-
-## Configuration Reference
-
-### Required Parameters
-
-| Parameter | Description |
-|-----------|-------------|
-| `hivetrace` | An initialised SDK instance |
-| `application_id` | The HiveTrace Application ID from the UI |
-| `agent_id_mapping` | Mapping of agent roles to IDs and descriptions |
-
-### Optional Parameters
-
-| Parameter | Description |
-|-----------|-------------|
-| `user_id` | User identifier |
-| `session_id` | Session identifier |
-
-### Agent ID Mapping Format
-
-```python
-agent_id_mapping = {
-    "Agent role name": {
-        "id": "unique-uuid-string",  # required
-        "description": "Agent description",  # required
-    }
-}
-```
-
----
-
-## Environment Variables
-
-Set environment variables for an easier setup:
-
-```bash
-# .env file
-HIVETRACE_URL=https://your-hivetrace-instance.com
-HIVETRACE_ACCESS_TOKEN=your-access-token
-HIVETRACE_APP_ID=your-application-id
-```
-
-```python
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-hivetrace = HivetraceSDK(
-    config={
-        "HIVETRACE_URL": os.getenv("HIVETRACE_URL"),
-        "HIVETRACE_ACCESS_TOKEN": os.getenv("HIVETRACE_ACCESS_TOKEN"),
-    },
-    async_mode=False,
-)
-```
-
----
-
-## Advanced Usage
-
-### Asynchronous Mode
-
-```python
-import asyncio
-
-hivetrace = HivetraceSDK(async_mode=True)
-
-@trace(
-    hivetrace=hivetrace,
-    application_id="app-id",
-    agent_id_mapping=agent_id_mapping,
-)
-def create_crew():
-    return Crew(agents=[...], tasks=[...])
-
-async def run_async_workflow():
-    await hivetrace.input_async(
-        application_id="app-id",
-        message="User input",
+    # Execute with monitoring
+    crew = create_crew()
+    result = crew.kickoff(
+        inputs={"topic": topic},
+        **common_params  # ← pass common parameters
     )
 
-    crew = create_crew()
-    result = await crew.kickoff_async(inputs={"topic": "AI"})
-
-    await hivetrace.close()
-
-asyncio.run(run_async_workflow())
+    return {
+        "result": result.raw,
+        "execution_details": {**common_params, "status": "completed"},
+    }
 ```
 
-### Tool Tracking
+**How it works:**
 
-Assign an `agent_id` to every tool you want to track:
+1. **`agent_conversation_id`** — unique ID for grouping all actions under a single request
+2. **`hivetrace.input()`** — sends the user’s request to HiveTrace for inspection
+3. **`@trace`**:
+
+   * Intercepts all agent actions inside the Crew
+   * Sends data about each step to HiveTrace
+   * Associates actions with specific agents via `agent_id_mapping`
+4. **`**common_params`** — passes metadata into `crew.kickoff()` so all events are linked
+
+**Critical:** The `@trace` decorator must be applied to the function that creates and returns the `Crew`, **not** the function that calls `kickoff()`.
+
+---
+
+## Step 7: Update FastAPI endpoints (if used)
+
+**What to do:** Pass the HiveTrace client to the business logic
+
+**Example:** In `src/routers/topic_router.py`
 
 ```python
-from crewai_tools import FileReadTool, WebSearchTool
+from fastapi import APIRouter, Body, Request
+# ADD: import HiveTrace type
+from hivetrace import SyncHivetraceSDK
 
-search_tool = WebSearchTool()
-file_tool = FileReadTool()
+from src.services.topic_service import process_topic
+from src.config import SESSION_ID, USER_ID
 
-search_tool.agent_id = "agent-uuid-here"
-file_tool.agent_id  = "agent-uuid-here"
+router = APIRouter(prefix="/api")
 
-agent = Agent(
-    role="Researcher",
-    tools=[search_tool, file_tool],
-    ...
-)
+@router.post("/process-topic")
+async def api_process_topic(request: Request, request_body: dict = Body(...)):
+    # ADD: get HiveTrace client from app state
+    hivetrace: SyncHivetraceSDK = request.app.state.hivetrace
+    
+    return process_topic(
+        topic=request_body["topic"],
+        hivetrace=hivetrace,  # ← pass client
+        user_id=USER_ID,
+        session_id=SESSION_ID,
+    )
 ```
 
-License
-========
+**Why:** The API endpoint must pass the HiveTrace client to the business logic so monitoring data can be sent.
 
-This project is licensed under Apache License 2.0.
+---
+
+## 🚨 Common mistakes
+
+1. **Role mismatch** — make sure keys in `agent_id_mapping` exactly match `role` in agents
+2. **Missing `agent_id_mapping`** — the `@trace` decorator must receive the mapping
+3. **Decorator on wrong function** — `@trace` must be applied to the Crew creation function, not `kickoff`
+4. **Client not closed** — remember to call `hivetrace.close()` in the lifespan
+5. **Invalid credentials** — check your HiveTrace environment variables

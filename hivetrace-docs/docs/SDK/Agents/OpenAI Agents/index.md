@@ -1,91 +1,113 @@
 # Интеграция с OpenAI Agents
 
-## Обзор
+**Демонстрационный репозиторий**
 
-HiveTrace SDK обеспечивает бесшовную интеграцию с [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) для мониторинга взаимодействий агентов, использования инструментов, передач управления и выполнения задач в ваших приложениях на основе OpenAI Agents.
+[https://github.com/anntish/openai-agents-forge](https://github.com/anntish/openai-agents-forge)
 
-## Быстрый старт
+### 1. Установка
 
-### Предварительные требования
-
-- Установленный HiveTrace SDK: `pip install hivetrace[openai_agents]`
-- Установленный OpenAI Agents SDK: `pip install openai-agents`
-- Действительный ID приложения HiveTrace и токен доступа
-
-### Базовая настройка
-
-**Шаг 1: Инициализация SDK (опционально)**
-
-```python
-from hivetrace import HivetraceSDK
-from hivetrace.adapters.openai_agents import HivetraceOpenAIAgentProcessor
-
-# Инициализация SDK
-hivetrace = HivetraceSDK(
-    config={
-        "HIVETRACE_URL": "https://your-hivetrace-instance.com",
-        "HIVETRACE_ACCESS_TOKEN": "your-access-token",
-    },
-    async_mode=False,
-)
+```bash
+pip install hivetrace[openai_agents]==1.3.5
 ```
 
-**Шаг 2: Настройка трассировки**
+---
 
-`HivetraceOpenAIAgentProcessor` подключается к системе трассировки OpenAI Agents SDK и автоматически логирует всю активность агентов и инструментов в HiveTrace.
+### 2. Настройка окружения
+
+Задайте переменные окружения (через `.env` или команду `export`):
+
+```bash
+HIVETRACE_URL=http://localhost:8000          # ваш адрес HiveTrace
+HIVETRACE_ACCESS_TOKEN=ht_...                # ваш токен доступа HiveTrace
+HIVETRACE_APPLICATION_ID=00000000-...-0000   # ваш ID приложения HiveTrace
+
+SESSION_ID=
+USERID=
+
+OPENAI_API_KEY=
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4o-mini
+```
+
+---
+
+### 3. Подключение Trace Processor в коде
+
+Добавьте 3 строки перед созданием или использованием агентов:
 
 ```python
-from agents import Agent, Runner, function_tool, set_trace_processors
-from hivetrace.adapters.openai_agents import HivetraceOpenAIAgentProcessor
+from agents import set_trace_processors
+from hivetrace.adapters.openai_agents.tracing import HivetraceOpenAIAgentProcessor
 
+set_trace_processors([
+    HivetraceOpenAIAgentProcessor()  # берет конфигурацию из переменных окружения
+])
+```
 
-set_trace_processors(
+Альтернатива (явная конфигурация, если не хотите использовать переменные окружения):
+
+```python
+from agents import set_trace_processors
+from hivetrace import SyncHivetraceSDK
+from hivetrace.adapters.openai_agents.tracing import HivetraceOpenAIAgentProcessor
+
+hivetrace = SyncHivetraceSDK(config={
+    "HIVETRACE_URL": "http://localhost:8000",
+    "HIVETRACE_ACCESS_TOKEN": "ht_...",
+})
+
+set_trace_processors([
     HivetraceOpenAIAgentProcessor(
+        application_id="00000000-0000-0000-0000-000000000000",
         hivetrace_instance=hivetrace,
-        application_id="your-hivetrace-app-id",
     )
-)
+])
 ```
 
-или настройте переменные окружения HIVETRACE_URL, HIVETRACE_ACCESS_TOKEN, HIVETRACE_APPLICATION_ID для упрощения конфигурации:
+Важно:
+
+* Регистрируйте процессор только один раз при старте приложения.
+* Подключайте его до первого запуска агента (`Runner.run(...)` / `Runner.run_sync(...)`).
+
+---
+
+### 4. Минимальный пример «До/После»
+
+До:
 
 ```python
-from agents import Agent, Runner, function_tool, set_trace_processors
-from hivetrace.adapters.openai_agents import HivetraceOpenAIAgentProcessor
+from agents import Agent, Runner
 
+assistant = Agent(name="Assistant", instructions="Be helpful.")
+print(Runner.run_sync(assistant, "Hi!"))
+```
+
+После (с мониторингом HiveTrace):
+
+```python
+from agents import Agent, Runner, set_trace_processors
+from hivetrace.adapters.openai_agents.tracing import HivetraceOpenAIAgentProcessor
 
 set_trace_processors([HivetraceOpenAIAgentProcessor()])
+
+assistant = Agent(name="Assistant", instructions="Be helpful.")
+print(Runner.run_sync(assistant, "Hi!"))
 ```
 
-**Шаг 3: Вызов ваших агентов**
+С этого момента все вызовы агентов, передачи управления и вызовы инструментов будут логироваться в HiveTrace.
 
+---
+
+### 5. Трассировка инструментов
+
+Если вы используете инструменты, декорируйте их с помощью `@function_tool`, чтобы их вызовы автоматически отслеживались:
 
 ```python
-from agents.tracing.create import trace
+from agents import function_tool
 
-# Определите вашего агента и инструменты как обычно
-@function_tool
-def get_weather(city: str):
-    return f"The weather in {city} is sunny."
-
-agent = Agent(
-    name="WeatherAgent",
-    instructions="You provide weather updates.",
-    tools=[get_weather],
-)
-
-# Запуск агента
-import asyncio
-async def main():
-    with trace(
-        workflow_name="Agent workflow",
-        metadata={
-            "session_id": "your-session-id",
-            "user_id": "your-user-id",
-        },
-    ):
-        result = await Runner.run(agent, "What's the weather in Paris?")
-        print(result.final_output)
-
-asyncio.run(main())
+@function_tool(description_override="Складывает два числа")
+def calculate_sum(a: int, b: int) -> int:
+    return a + b
 ```
+
+Добавьте этот инструмент в `tools=[...]` вашего агента — и его вызовы появятся в HiveTrace с входными и выходными данными.
