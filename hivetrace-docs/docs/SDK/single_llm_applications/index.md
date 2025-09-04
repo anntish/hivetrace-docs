@@ -45,6 +45,16 @@ response = client.input(
     application_id="your-application-id",  # Получается после регистрации приложения в UI
     message="Текст пользовательского запроса",
 )
+
+# Опционально можно прикрепить к сообщению файл (filename, bytes, mime_type)
+files = [
+    ("doc1.txt", open("doc1.txt", "rb"), "text/plain"),
+]
+response_with_files = client.input(
+    application_id="your-application-id",
+    message="User prompt with files",
+    files=files,
+)
 ```
 
 ### Отправка ответа LLM (output)
@@ -54,7 +64,19 @@ response = client.output(
     application_id="your-application-id",
     message="Текст ответа LLM",
 )
+
+# С файлом
+files = [
+    ("doc1.txt", open("doc1.txt", "rb"), "text/plain"),
+]
+response_with_files = client.output(
+    application_id="your-application-id",
+    message="LLM response with files",
+    files=files,
+)
 ```
+
+> **Note:** файл прикрепляется для аналитики того, что пользователи отправляли в LLM. На данный момент содержимое файлов не проверяется цензором hivetrace.
 
 ---
 
@@ -74,6 +96,16 @@ response = await client.input(
     application_id="your-application-id",
     message="Текст пользовательского запроса",
 )
+
+# С файлом (filename, bytes, mime_type)
+files = [
+    ("doc1.txt", open("doc1.txt", "rb"), "text/plain"),
+]
+response_with_files = await client.input(
+    application_id="your-application-id",
+    message="User prompt with files",
+    files=files,
+)
 ```
 
 ### Отправка ответа LLM (output)
@@ -83,7 +115,19 @@ response = await client.output(
     application_id="your-application-id",
     message="Текст ответа LLM",
 )
+
+# С файлом
+files = [
+    ("doc1.txt", open("doc1.txt", "rb"), "text/plain"),
+]
+response_with_files = await client.output(
+    application_id="your-application-id",
+    message="LLM response with files",
+    files=files,
+)
 ```
+
+> **Note:** файл прикрепляется для аналитики того, что пользователи отправляли в LLM. На данный момент содержимое файлов не проверяется цензором hivetrace.
 
 ---
 
@@ -100,12 +144,12 @@ response = client.input(
             "agent-1-id": {"name": "Agent 1", "description": "Описание агента"},
             "agent-2-id": {"name": "Agent 2"},
             "agent-3-id": {}
-        }
+        },
+        # если вы хотите только получить информацию о результате работы цензора, без сохранения сообщения на стороне hivetrace
+        "censor_only": True,
     }
 )
 ```
-
-> **Примечание:** `session_id`, `user_id` и все идентификаторы агентов должны быть корректными UUID.
 
 ---
 
@@ -115,10 +159,10 @@ response = client.input(
 
 ```python
 # Sync
-def input(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+def input(application_id: str, message: str, additional_parameters: dict | None = None, files: list[tuple[str, bytes, str]] | None = None,) -> dict: ...
 
 # Async
-async def input(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+async def input(application_id: str, message: str, additional_parameters: dict | None = None, files: list[tuple[str, bytes, str]] | None = None,) -> dict: ...
 ```
 
 Отправляет **пользовательский запрос** в Hivetrace.
@@ -136,8 +180,7 @@ async def input(application_id: str, message: str, additional_parameters: dict |
     "is_toxic": false,
     "type_of_violation": "benign",
     "token_count": 9,
-    "token_usage_warning": false,
-    "token_usage_unbounded": false
+    "token_usage_severity": None
   }
 }
 ```
@@ -148,10 +191,10 @@ async def input(application_id: str, message: str, additional_parameters: dict |
 
 ```python
 # Sync
-def output(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+def output(application_id: str, message: str, additional_parameters: dict | None = None, files: list[tuple[str, bytes, str]] | None = None,) -> dict: ...
 
 # Async
-async def output(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+async def output(application_id: str, message: str, additional_parameters: dict | None = None, files: list[tuple[str, bytes, str]] | None = None,) -> dict: ...
 ```
 
 Отправляет **ответ LLM** в Hivetrace.
@@ -169,8 +212,7 @@ async def output(application_id: str, message: str, additional_parameters: dict 
     "is_toxic": false,
     "type_of_violation": "safe",
     "token_count": 21,
-    "token_usage_warning": false,
-    "token_usage_unbounded": false
+    "token_usage_severity": None
   }
 }
 ```

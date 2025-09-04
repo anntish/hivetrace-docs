@@ -47,6 +47,16 @@ response = client.input(
     application_id="your-application-id",  # Obtained after registering the application in the UI
     message="User prompt here",
 )
+
+# Optionally attach files (filename, bytes, mime_type)
+files = [
+    ("doc1.txt", open("doc1.txt", "rb"), "text/plain"),
+]
+response_with_files = client.input(
+    application_id="your-application-id",
+    message="User prompt with files",
+    files=files,
+)
 ```
 
 ### Send an LLM response (output)
@@ -56,7 +66,19 @@ response = client.output(
     application_id="your-application-id",
     message="LLM response here",
 )
+
+# With files
+files = [
+    ("doc1.txt", open("doc1.txt", "rb"), "text/plain"),
+]
+response_with_files = client.output(
+    application_id="your-application-id",
+    message="LLM response with files",
+    files=files,
+)
 ```
+
+> **Note:** the file is attached to analyze what users have sent to LLM. At the moment, the contents of the files are not checked by the hivetrace censor.
 
 ---
 
@@ -76,6 +98,16 @@ response = await client.input(
     application_id="your-application-id",
     message="User prompt here",
 )
+
+# With files (filename, bytes, mime_type)
+files = [
+    ("doc1.txt", open("doc1.txt", "rb"), "text/plain"),
+]
+response_with_files = await client.input(
+    application_id="your-application-id",
+    message="User prompt with files",
+    files=files,
+)
 ```
 
 ### Send an LLM response (output)
@@ -85,7 +117,19 @@ response = await client.output(
     application_id="your-application-id",
     message="LLM response here",
 )
+
+# With files
+files = [
+    ("doc1.txt", open("doc1.txt", "rb"), "text/plain"),
+]
+response_with_files = await client.output(
+    application_id="your-application-id",
+    message="LLM response with files",
+    files=files,
+)
 ```
+
+> **Note:** the file is attached to analyze what users have sent to LLM. At the moment, the contents of the files are not checked by the hivetrace censor.
 
 ---
 
@@ -102,12 +146,12 @@ response = client.input(
             "agent-1-id": {"name": "Agent 1", "description": "Agent description"},
             "agent-2-id": {"name": "Agent 2"},
             "agent-3-id": {}
-        }
+        },
+        # If you want to send only to censor and avoid DB persistence on backend
+        "censor_only": True,
     }
 )
 ```
-
-> **Note:** `session_id`, `user_id`, and all agent IDs must be valid UUIDs.
 
 ---
 
@@ -117,10 +161,10 @@ response = client.input(
 
 ```python
 # Sync
-def input(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+def input(application_id: str, message: str, additional_parameters: dict | None = None, files: list[tuple[str, bytes, str]] | None = None,) -> dict: ...
 
 # Async
-async def input(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+async def input(application_id: str, message: str, additional_parameters: dict | None = None, files: list[tuple[str, bytes, str]] | None = None,) -> dict: ...
 ```
 
 Sends a **user prompt** to Hivetrace.
@@ -138,8 +182,7 @@ Sends a **user prompt** to Hivetrace.
     "is_toxic": false,
     "type_of_violation": "benign",
     "token_count": 9,
-    "token_usage_warning": false,
-    "token_usage_unbounded": false
+    "token_usage_severity": None
   }
 }
 ```
@@ -150,10 +193,10 @@ Sends a **user prompt** to Hivetrace.
 
 ```python
 # Sync
-def output(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+def output(application_id: str, message: str, additional_parameters: dict | None = None, files: list[tuple[str, bytes, str]] | None = None,) -> dict: ...
 
 # Async
-async def output(application_id: str, message: str, additional_parameters: dict | None = None) -> dict: ...
+async def output(application_id: str, message: str, additional_parameters: dict | None = None, files: list[tuple[str, bytes, str]] | None = None,) -> dict: ...
 ```
 
 Sends an **LLM response** to Hivetrace.
@@ -171,8 +214,7 @@ Sends an **LLM response** to Hivetrace.
     "is_toxic": false,
     "type_of_violation": "safe",
     "token_count": 21,
-    "token_usage_warning": false,
-    "token_usage_unbounded": false
+    "token_usage_severity": None
   }
 }
 ```
