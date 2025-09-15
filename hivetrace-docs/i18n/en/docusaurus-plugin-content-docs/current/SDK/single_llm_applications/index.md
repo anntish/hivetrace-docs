@@ -176,14 +176,15 @@ Sends a **user prompt** to Hivetrace.
 **Response example:**
 
 ```json
-{
-  "status": "processed",
-  "monitoring_result": {
-    "is_toxic": false,
-    "type_of_violation": "benign",
-    "token_count": 9,
-    "token_usage_severity": None
-  }
+{'status': 'processed',
+ 'monitoring_result': {'id': '8dc9fdd0-9029-4370-836b-eaa15f9c3f0e',
+  'flagged': False,
+  'type_of_violation': 'safe',
+  'custom_flagged': None,
+  'refusal_flagged': None,
+  'token_count': 466,
+  'token_usage_severity': 'high'},
+ 'blocked': False
 }
 ```
 
@@ -208,14 +209,15 @@ Sends an **LLM response** to Hivetrace.
 **Response example:**
 
 ```json
-{
-  "status": "processed",
-  "monitoring_result": {
-    "is_toxic": false,
-    "type_of_violation": "safe",
-    "token_count": 21,
-    "token_usage_severity": None
-  }
+{'status': 'processed',
+ 'monitoring_result': {'id': '8dc9fdd0-9029-4370-836b-eaa15f9c3f0e',
+  'flagged': False,
+  'type_of_violation': 'safe',
+  'custom_flagged': None,
+  'refusal_flagged': None,
+  'token_count': 466,
+  'token_usage_severity': 'high'},
+ 'blocked': False
 }
 ```
 

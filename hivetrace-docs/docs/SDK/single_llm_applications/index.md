@@ -174,14 +174,15 @@ async def input(application_id: str, message: str, additional_parameters: dict |
 **Пример ответа:**
 
 ```json
-{
-  "status": "processed",
-  "monitoring_result": {
-    "is_toxic": false,
-    "type_of_violation": "benign",
-    "token_count": 9,
-    "token_usage_severity": None
-  }
+{'status': 'processed',
+ 'monitoring_result': {'id': '8dc9fdd0-9029-4370-836b-eaa15f9c3f0e',
+  'flagged': False,
+  'type_of_violation': 'safe',
+  'custom_flagged': None,
+  'refusal_flagged': None,
+  'token_count': 466,
+  'token_usage_severity': 'high'},
+ 'blocked': False
 }
 ```
 
@@ -206,14 +207,15 @@ async def output(application_id: str, message: str, additional_parameters: dict 
 **Пример ответа:**
 
 ```json
-{
-  "status": "processed",
-  "monitoring_result": {
-    "is_toxic": false,
-    "type_of_violation": "safe",
-    "token_count": 21,
-    "token_usage_severity": None
-  }
+{'status': 'processed',
+ 'monitoring_result': {'id': '02ee4d3f-252d-4c2f-b3d0-70d717365cb0',
+  'flagged': False,
+  'type_of_violation': 'safe',
+  'custom_flagged': None,
+  'refusal_flagged': None,
+  'token_count': 15,
+  'token_usage_severity': None},
+ 'blocked': False
 }
 ```
 
